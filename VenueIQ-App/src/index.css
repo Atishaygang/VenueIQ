@@ -1,0 +1,55 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: 'Space Grotesk', sans-serif;
+}
+
+@layer base {
+  body {
+    background-color: #0a0a0f;
+    color: white;
+    font-family: 'Space Grotesk', sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+}
+
+@utility no-scrollbar {
+  &::-webkit-scrollbar {
+    display: none;
+  }
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
+}
+
+@keyframes marquee {
+  0% { transform: translateX(100%); }
+  100% { transform: translateX(-100%); }
+}
+
+@utility animate-marquee {
+  animation: marquee 20s linear infinite;
+}
+
+@utility ticket-gradient {
+  background: linear-gradient(135deg, rgba(30,30,42,1) 0%, rgba(20,20,30,1) 100%);
+}
+
+@keyframes flashSix {
+  0% { filter: brightness(1); border-color: rgba(234, 179, 8, 0.2); }
+  50% { filter: brightness(1.8); border-color: rgba(234, 179, 8, 1); }
+  100% { filter: brightness(1); border-color: rgba(234, 179, 8, 0.2); }
+}
+
+@utility flash-six-anim {
+  animation: flashSix 0.5s ease-in-out 3;
+}
+
+@keyframes flashWicket {
+  0% { opacity: 1; }
+  50% { opacity: 0.6; }
+  100% { opacity: 1; }
+}
+
+@utility flash-wicket-anim {
+  animation: flashWicket 0.5s ease-in-out 3;
+}
