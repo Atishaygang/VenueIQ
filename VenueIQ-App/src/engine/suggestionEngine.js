@@ -6,7 +6,7 @@ export function generateSuggestions(zones, stalls, gates) {
   // Rule 1: Zone > 85 AND rising
   Object.keys(zones).forEach(z => {
     if (zones[z].density >= 85 && zones[z].trend === 'rising') {
-      const conf = Math.min(95, 60 + (zones[z].density - 70) * 1.2).toFixed(0);
+      const conf = Math.round(Math.min(95, 60 + (zones[z].density - 70) * 1.2));
       suggestions.push({
         id: idAcc++,
         zone: `Zone ${z}`,
@@ -24,7 +24,7 @@ export function generateSuggestions(zones, stalls, gates) {
     const z1 = zoneIds[i];
     const z2 = zoneIds[i + 1];
     if (zones[z1].density > 75 && zones[z2].density > 75) {
-      const conf = Math.min(95, 60 + ((zones[z1].density + zones[z2].density)/2 - 70) * 1.2).toFixed(0);
+      const conf = Math.round(Math.min(95, 60 + ((zones[z1].density + zones[z2].density)/2 - 70) * 1.2));
       suggestions.push({
         id: idAcc++,
         zone: `Zone ${z1}-${z2}`,
@@ -50,7 +50,7 @@ export function generateSuggestions(zones, stalls, gates) {
       });
       
       const relatedZone = stalls[s].zone;
-      const conf = Math.min(95, 60 + (stalls[s].waitTime * 2)).toFixed(0);
+      const conf = Math.round(Math.min(95, 60 + (stalls[s].waitTime * 2)));
       suggestions.push({
         id: idAcc++,
         zone: `Zone ${relatedZone}`,
@@ -65,7 +65,7 @@ export function generateSuggestions(zones, stalls, gates) {
   Object.keys(gates).forEach(g => {
     if (gates[g].flowRate > 200) {
       const relatedZone = gates[g].zone;
-      const conf = Math.min(95, 60 + (gates[g].flowRate - 150) * 0.5).toFixed(0);
+      const conf = Math.round(Math.min(95, 60 + (gates[g].flowRate - 150) * 0.5));
       suggestions.push({
         id: idAcc++,
         zone: `Zone ${relatedZone}`,

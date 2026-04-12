@@ -7,29 +7,33 @@ import { speak } from '../engine/voiceEngine';
 import VoiceControlBar from '../components/shared/VoiceControlBar';
 
 const MemoizedDensityChart = React.memo(({ densities }) => (
-  <ResponsiveContainer width="100%" height="100%">
-    <BarChart data={densities}>
-      <XAxis dataKey="zone" stroke="#6b7280" />
-      <YAxis stroke="#6b7280" domain={[0, 100]} />
-      <Tooltip cursor={{ fill: '#1a1a24' }} contentStyle={{ backgroundColor: '#13131a', border: '1px solid #374151', borderRadius: '8px', color: '#fff' }} />
-      <Bar dataKey="density" radius={[4, 4, 0, 0]}>
-        {densities.map((entry, index) => (
-          <Cell key={`cell-${index}`} fill={entry.density >= 80 ? '#ef4444' : entry.density >= 50 ? '#f59e0b' : '#3b82f6'} />
-        ))}
-      </Bar>
-    </BarChart>
-  </ResponsiveContainer>
+  <div role="img" aria-label="Live Zone Density Bar Chart" className="w-full h-full">
+    <ResponsiveContainer width="100%" height="100%">
+      <BarChart data={densities}>
+        <XAxis dataKey="zone" stroke="#6b7280" />
+        <YAxis stroke="#6b7280" domain={[0, 100]} />
+        <Tooltip cursor={{ fill: '#1a1a24' }} contentStyle={{ backgroundColor: '#13131a', border: '1px solid #374151', borderRadius: '8px', color: '#fff' }} />
+        <Bar dataKey="density" radius={[4, 4, 0, 0]}>
+          {densities.map((entry, index) => (
+            <Cell key={`cell-${index}`} fill={entry.density >= 80 ? '#ef4444' : entry.density >= 50 ? '#f59e0b' : '#3b82f6'} />
+          ))}
+        </Bar>
+      </BarChart>
+    </ResponsiveContainer>
+  </div>
 ));
 
 const MemoizedQueueChart = React.memo(({ queues }) => (
-  <ResponsiveContainer width="100%" height="100%">
-    <BarChart data={queues} layout="vertical" margin={{ left: 40 }}>
-      <XAxis type="number" stroke="#6b7280" />
-      <YAxis dataKey="name" type="category" stroke="#6b7280" fontSize={10} width={100} />
-      <Tooltip cursor={{ fill: '#1a1a24' }} contentStyle={{ backgroundColor: '#13131a', border: '1px solid #374151', borderRadius: '8px', color: '#fff' }} />
-      <Bar dataKey="waitTime" fill="#f59e0b" radius={[0, 4, 4, 0]} />
-    </BarChart>
-  </ResponsiveContainer>
+  <div role="img" aria-label="Real-time Queue Lengths Bar Chart" className="w-full h-full">
+    <ResponsiveContainer width="100%" height="100%">
+      <BarChart data={queues} layout="vertical" margin={{ left: 40 }}>
+        <XAxis type="number" stroke="#6b7280" />
+        <YAxis dataKey="name" type="category" stroke="#6b7280" fontSize={10} width={100} />
+        <Tooltip cursor={{ fill: '#1a1a24' }} contentStyle={{ backgroundColor: '#13131a', border: '1px solid #374151', borderRadius: '8px', color: '#fff' }} />
+        <Bar dataKey="waitTime" fill="#f59e0b" radius={[0, 4, 4, 0]} />
+      </BarChart>
+    </ResponsiveContainer>
+  </div>
 ));
 
 function Overview() {
@@ -58,7 +62,7 @@ function Overview() {
         <p className="text-sm text-gray-400 italic">Last updated: {timeSinceTick} seconds ago</p>
       </div>
       
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4" role="status" aria-live="polite">
         {[
           { label: 'Total Attendees', val: totalAttendees.toLocaleString(), icon: <Users className="text-blue-500" /> },
           { label: 'High Density Zones', val: highDensityCount, icon: <AlertTriangle className="text-red-500" /> },
@@ -133,7 +137,7 @@ function AIRedeployment() {
                 </div>
               ) : (
                 <div className="flex space-x-3">
-                  <button onClick={() => handleAccept(s)} className="bg-[#f59e0b] hover:bg-[#d97706] text-black font-semibold px-6 py-2 rounded-lg transition-colors flex items-center">
+                  <button onClick={() => handleAccept(s)} className="bg-[#f59e0b] hover:bg-[#d97706] text-black font-semibold px-6 py-2 rounded-lg transition-colors flex items-center focus:ring-2 focus:ring-purple-500">
                     <Check size={18} className="mr-2" /> Accept
                   </button>
                 </div>
@@ -175,8 +179,8 @@ function Broadcast() {
         <form onSubmit={handleSend} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm text-gray-400 mb-1">Target Zone</label>
-              <select name="zone" className="w-full bg-[#1a1a24] border border-gray-700 text-white rounded-lg p-2.5 focus:border-[#f59e0b] focus:ring-1 focus:ring-[#f59e0b] outline-none">
+              <label htmlFor="target-zone" className="block text-sm text-gray-400 mb-1">Target Zone</label>
+              <select id="target-zone" name="zone" className="w-full bg-[#1a1a24] border border-gray-700 text-white rounded-lg p-2.5 focus:border-[#f59e0b] focus:ring-1 focus:ring-[#f59e0b] outline-none">
                 <option>All Zones</option>
                 <option>Zone A</option>
                 <option>Zone B</option>
@@ -185,8 +189,8 @@ function Broadcast() {
               </select>
             </div>
             <div>
-              <label className="block text-sm text-gray-400 mb-1">Severity</label>
-              <select name="severity" className="w-full bg-[#1a1a24] border border-gray-700 text-white rounded-lg p-2.5 focus:border-[#f59e0b] focus:ring-1 focus:ring-[#f59e0b] outline-none">
+              <label htmlFor="target-severity" className="block text-sm text-gray-400 mb-1">Severity</label>
+              <select id="target-severity" name="severity" className="w-full bg-[#1a1a24] border border-gray-700 text-white rounded-lg p-2.5 focus:border-[#f59e0b] focus:ring-1 focus:ring-[#f59e0b] outline-none">
                 <option>Info</option>
                 <option>Warning</option>
                 <option>Critical</option>
@@ -194,10 +198,10 @@ function Broadcast() {
             </div>
           </div>
           <div>
-            <label className="block text-sm text-gray-400 mb-1">Message</label>
-            <textarea name="message" required rows={3} className="w-full bg-[#1a1a24] border border-gray-700 text-white rounded-lg p-3 focus:border-[#f59e0b] outline-none resize-none" placeholder="Type broadcast message here..."></textarea>
+            <label htmlFor="broadcast-msg" className="block text-sm text-gray-400 mb-1">Message</label>
+            <textarea id="broadcast-msg" name="message" required rows={3} className="w-full bg-[#1a1a24] border border-gray-700 text-white rounded-lg p-3 focus:border-[#f59e0b] outline-none resize-none focus:ring-2 focus:ring-[#f59e0b]" placeholder="Type broadcast message here..."></textarea>
           </div>
-          <button type="submit" className="bg-[#f59e0b] hover:bg-[#d97706] text-black font-bold px-6 py-2.5 rounded-lg flex items-center justify-center w-full transition-colors">
+          <button type="submit" className="bg-[#f59e0b] hover:bg-[#d97706] text-black font-bold px-6 py-2.5 rounded-lg flex items-center justify-center w-full transition-colors focus:ring-2 focus:ring-purple-500">
             <Send size={18} className="mr-2" /> Send Broadcast
           </button>
         </form>
@@ -206,9 +210,9 @@ function Broadcast() {
       {logs.length > 0 && (
         <div className="w-full max-w-2xl">
           <h3 className="text-xl font-bold text-white mb-4">Recent Broadcasts</h3>
-          <div className="space-y-3">
+          <div className="space-y-3" role="log" aria-live="polite">
             {logs.map(lg => (
-              <div key={lg.id} className="bg-[#13131a] p-4 rounded-xl border border-gray-800 flex items-start space-x-4">
+              <div key={lg.id} role="alert" className="bg-[#13131a] p-4 rounded-xl border border-gray-800 flex items-start space-x-4">
                 <div className={`mt-1 px-2 py-1 text-[10px] uppercase font-bold rounded
                   ${lg.severity === 'Critical' ? 'bg-red-500/20 text-red-500' : lg.severity === 'Warning' ? 'bg-yellow-500/20 text-yellow-500' : 'bg-blue-500/20 text-blue-400'}`}>
                   {lg.severity}
@@ -279,7 +283,7 @@ function Incidents() {
                   {inc.status !== 'Resolved' && (
                     <button 
                       onClick={() => resolveIncident(inc.id)}
-                      className="text-xs bg-[#f59e0b] hover:bg-[#d97706] text-black px-3 py-1 rounded font-semibold transition"
+                      className="text-xs bg-[#f59e0b] hover:bg-[#d97706] text-black px-3 py-1 rounded font-semibold transition focus:ring-2 focus:ring-purple-500"
                     >
                       Resolve
                     </button>
@@ -311,7 +315,7 @@ function Gates() {
     <div className="space-y-6 animate-fade-in-up pb-[100px]">
       <div className="flex justify-between items-center mb-6 border-b border-gray-800 pb-4">
         <h2 className="text-3xl font-bold text-white">Gate Control</h2>
-        <button onClick={handleCloseAll} className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition-colors text-sm font-bold shadow-lg flex items-center">
+        <button onClick={handleCloseAll} className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition-colors text-sm font-bold shadow-lg flex items-center focus:ring-2 focus:ring-purple-500">
           <AlertTriangle size={18} className="mr-2" /> EMERGENCY: CLOSE ALL
         </button>
       </div>
@@ -335,7 +339,8 @@ function Gates() {
 
               <button 
                 onClick={() => toggleGate(id)}
-                className={`w-full py-2 rounded font-semibold text-sm transition-colors
+                aria-pressed={g.open}
+                className={`w-full py-2 rounded font-semibold text-sm transition-colors focus:ring-2 focus:ring-purple-500
                   ${g.open ? 'bg-[#1a1a24] text-white hover:bg-red-500/20 hover:text-red-400 border border-gray-700 hover:border-red-500/50' : 
                   'bg-[#f59e0b] hover:bg-[#d97706] text-black border border-transparent'}`}
               >
@@ -363,8 +368,9 @@ export default function StaffPortal() {
 
   return (
     <div className="min-h-screen bg-[#0a0a0f] text-white font-sans flex relative">
+      <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-[110] focus:bg-white focus:text-black focus:p-2 focus:rounded">Skip to main content</a>
       <VoiceControlBar isMobile={false} />
-      <div className="absolute top-0 w-full h-[40px] bg-[#1a1a24] border-b border-gray-800 flex items-center justify-center z-50 text-xs text-gray-400 uppercase tracking-widest font-bold">
+      <div className="absolute top-0 w-full h-[40px] bg-[#1a1a24] border-b border-gray-800 flex items-center justify-center z-50 text-xs text-gray-400 uppercase tracking-widest font-bold" role="status" aria-live="polite">
         🔊 Voice Alerts Active
       </div>
 
@@ -373,7 +379,7 @@ export default function StaffPortal() {
       </div>
 
       {/* Sidebar */}
-      <div className="w-64 bg-[#13131a] border-r border-gray-800 flex flex-col hidden md:flex sticky top-[40px] h-[calc(100vh-40px)]">
+      <nav aria-label="Sidebar Navigation" className="w-64 bg-[#13131a] border-r border-gray-800 flex flex-col hidden md:flex sticky top-[40px] h-[calc(100vh-40px)]">
         <div className="p-6">
           <h1 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#f59e0b] to-[#fbbf24]">VenueIQ Staff</h1>
           <p className="text-xs text-gray-500 mt-1 uppercase tracking-widest font-semibold">Command Center</p>
@@ -386,7 +392,7 @@ export default function StaffPortal() {
               <Link 
                 key={n.id} 
                 to={`/staff${n.id ? '/' + n.id : ''}`}
-                className={`flex items-center px-4 py-3 rounded-lg transition-all duration-200 ${isActive ? 'bg-[#f59e0b]/10 text-[#f59e0b] font-semibold' : 'text-gray-400 hover:bg-[#1a1a24] hover:text-white'}`}
+                className={`flex items-center px-4 py-3 rounded-lg transition-all duration-200 focus:ring-2 focus:ring-purple-500 ${isActive ? 'bg-[#f59e0b]/10 text-[#f59e0b] font-semibold' : 'text-gray-400 hover:bg-[#1a1a24] hover:text-white'}`}
               >
                 <div className="mr-3">{n.icon}</div>
                 {n.label}
@@ -396,14 +402,14 @@ export default function StaffPortal() {
         </div>
 
         <div className="p-4 border-t border-gray-800">
-          <Link to="/" className="flex items-center justify-center w-full py-2.5 px-4 rounded border border-gray-700 text-gray-400 hover:bg-[#1a1a24] hover:text-white transition-colors text-sm">
+          <Link to="/" className="flex items-center justify-center w-full py-2.5 px-4 rounded border border-gray-700 text-gray-400 hover:bg-[#1a1a24] hover:text-white transition-colors text-sm focus:ring-2 focus:ring-purple-500">
             <LogOut size={16} className="mr-2" /> Exit Portal
           </Link>
         </div>
-      </div>
+      </nav>
 
       {/* Main Content Area */}
-      <div className="flex-1 overflow-y-auto mt-[40px]">
+      <main id="main-content" className="flex-1 overflow-y-auto mt-[40px]">
         <div className="p-8 max-w-7xl mx-auto min-h-[calc(100vh-40px)]">
           <Routes>
             <Route path="/" element={<Overview />} />
@@ -413,7 +419,7 @@ export default function StaffPortal() {
             <Route path="/gates" element={<Gates />} />
           </Routes>
         </div>
-      </div>
+      </main>
     </div>
   );
 }

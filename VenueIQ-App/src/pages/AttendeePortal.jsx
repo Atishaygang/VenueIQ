@@ -75,7 +75,7 @@ function HomeTab() {
           <div className="bg-red-600 p-3 text-white font-bold whitespace-nowrap z-10 flex items-center animate-pulse shadow-[0_0_10px_rgba(220,38,38,0.8)]">
              <span className="w-2 h-2 rounded-full bg-white mr-2"></span> LIVE
           </div>
-          <div className="flex-1 overflow-hidden relative h-12 flex items-center">
+          <div className="flex-1 overflow-hidden relative h-12 flex items-center" role="status" aria-live="polite">
             <div className={`whitespace-nowrap text-sm font-medium text-white px-4 ${isExciting ? 'animate-marquee-fast' : 'animate-marquee'}`}>
               {match.batting === 1 ? match.team1 : match.team2}: {match.score}/{match.wickets} ({formatOvers(match.balls)} ov) | 
               {match.target ? ` Target ${match.target}` : ' 1st Innings'} | Last ball: {match.lastEvent}
@@ -87,10 +87,10 @@ function HomeTab() {
         </p>
       </div>
 
-      <div className="space-y-2">
+      <div className="space-y-2" role="log" aria-live="polite">
         <h3 className="text-xs text-gray-400 uppercase tracking-wider font-bold mb-3">Live Updates</h3>
         {displayAlerts.map(alert => (
-          <div key={alert.id} className={`p-4 rounded-xl border flex items-center space-x-3 transition-colors duration-500
+          <div key={alert.id} role="alert" className={`p-4 rounded-xl border flex items-center space-x-3 transition-colors duration-500
             ${alert.severity === 'Critical' ? 'bg-[#f59e0b]/10 border-[#f59e0b]/30 text-[#f59e0b]' : 
               alert.severity === 'Success' ? 'bg-green-500/10 border-green-500/30 text-green-400' : 
               'bg-blue-500/10 border-blue-500/30 text-blue-400'}`}>
@@ -112,7 +112,7 @@ const HeatmapSVG = React.memo(({ zones }) => {
   };
 
   return (
-    <svg viewBox="0 0 200 150" className="w-full h-auto max-h-64 drop-shadow-2xl">
+    <svg viewBox="0 0 200 150" className="w-full h-auto max-h-64 drop-shadow-2xl" role="img" aria-label="Stadium Heatmap showing real time density per zone">
       {Object.keys(zones).map((zone, i) => {
         const density = zones[zone].density;
         const trend = zones[zone].trend;
@@ -202,7 +202,7 @@ function NavigateTab() {
       <div className="bg-[#13131a] p-5 rounded-xl border border-gray-800">
         <div className="flex justify-between items-center mb-4">
           <h3 className="font-bold text-white flex items-center"><Navigation2 size={16} className="mr-2 text-[#6c63ff]"/> Optimal Auto-Route</h3>
-          <button onClick={handleReroute} disabled={rerouting} className="text-xs bg-[#2a2a35] hover:bg-[#3a3a45] text-white px-3 py-1.5 rounded flex items-center transition">
+          <button onClick={handleReroute} disabled={rerouting} className="text-xs bg-[#2a2a35] hover:bg-[#3a3a45] text-white px-3 py-1.5 rounded flex items-center transition focus:ring-2 focus:ring-purple-500">
             <RefreshCw size={12} className={`mr-1 ${rerouting ? 'animate-spin' : ''}`} /> Reroute
           </button>
         </div>
@@ -316,7 +316,7 @@ function AlertsTab() {
           <button 
             key={f}
             onClick={() => setFilter(f)}
-            className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors whitespace-nowrap
+            className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors whitespace-nowrap focus:ring-2 focus:ring-purple-500
               ${filter === f ? 'bg-[#6c63ff] text-white' : 'bg-[#13131a] border border-gray-800 text-gray-400 hover:text-white'}`}
           >
             {f}
@@ -324,9 +324,9 @@ function AlertsTab() {
         ))}
       </div>
 
-      <div className="space-y-3">
+      <div className="space-y-3" role="log" aria-live="polite">
         {filtered.map(alert => (
-          <div key={alert.id} className="bg-[#13131a] p-4 rounded-xl border border-gray-800 flex space-x-4 shadow">
+          <div key={alert.id} role="alert" className="bg-[#13131a] p-4 rounded-xl border border-gray-800 flex space-x-4 shadow">
             <div className="pt-1">
               {['Info', 'Success'].includes(alert.severity) && <Info className="text-blue-400" size={20} />}
               {alert.severity === 'Warning' && <AlertTriangle className="text-yellow-500" size={20} />}
@@ -429,9 +429,10 @@ export default function AttendeePortal() {
 
   return (
     <div className="min-h-screen bg-[#0a0a0f] text-white font-sans md:max-w-md md:mx-auto md:border-x md:border-gray-800 md:shadow-2xl relative pt-4 overflow-hidden">
+      <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-[110] focus:bg-white focus:text-black focus:p-2 focus:rounded">Skip to main content</a>
       <VoiceControlBar isMobile={true} />
       
-      <div className="px-5 pb-[160px] overflow-y-auto h-screen">
+      <main id="main-content" className="px-5 pb-[160px] overflow-y-auto h-screen">
         <Routes>
           <Route path="/" element={<HomeTab />} />
           <Route path="/navigate" element={<NavigateTab />} />
@@ -439,7 +440,7 @@ export default function AttendeePortal() {
           <Route path="/alerts" element={<AlertsTab />} />
           <Route path="/parking" element={<ParkingTab />} />
         </Routes>
-      </div>
+      </main>
 
       <VoiceAssistant />
 
@@ -448,28 +449,28 @@ export default function AttendeePortal() {
       </div>
 
       {/* Bottom Navigation */}
-      <div className="absolute bottom-0 w-full md:max-w-md bg-[#13131a] border-t border-gray-800 py-3 px-6 flex justify-between items-center z-50">
-        <Link to="/attendee" className={`flex flex-col items-center space-y-1 ${location.pathname === '/attendee' ? 'text-[#6c63ff]' : 'text-gray-500 hover:text-gray-300'}`}>
+      <nav aria-label="Bottom Navigation" className="absolute bottom-0 w-full md:max-w-md bg-[#13131a] border-t border-gray-800 py-3 px-6 flex justify-between items-center z-50">
+        <Link to="/attendee" className={`flex flex-col items-center space-y-1 focus:ring-2 focus:ring-purple-500 rounded p-1 ${location.pathname === '/attendee' ? 'text-[#6c63ff]' : 'text-gray-500 hover:text-gray-300'}`}>
           <Home size={24} />
           <span className="text-[10px] font-medium">Home</span>
         </Link>
-        <Link to="/attendee/navigate" className={`flex flex-col items-center space-y-1 ${location.pathname.includes('/navigate') ? 'text-[#6c63ff]' : 'text-gray-500 hover:text-gray-300'}`}>
+        <Link to="/attendee/navigate" className={`flex flex-col items-center space-y-1 focus:ring-2 focus:ring-purple-500 rounded p-1 ${location.pathname.includes('/navigate') ? 'text-[#6c63ff]' : 'text-gray-500 hover:text-gray-300'}`}>
           <MapIcon size={24} />
           <span className="text-[10px] font-medium">Navigate</span>
         </Link>
-        <Link to="/attendee/facilities" className={`flex flex-col items-center space-y-1 ${location.pathname.includes('/facilities') ? 'text-[#6c63ff]' : 'text-gray-500 hover:text-gray-300'}`}>
+        <Link to="/attendee/facilities" className={`flex flex-col items-center space-y-1 focus:ring-2 focus:ring-purple-500 rounded p-1 ${location.pathname.includes('/facilities') ? 'text-[#6c63ff]' : 'text-gray-500 hover:text-gray-300'}`}>
           <Coffee size={24} />
           <span className="text-[10px] font-medium">Facilities</span>
         </Link>
-        <Link to="/attendee/alerts" className={`flex flex-col items-center space-y-1 ${location.pathname.includes('/alerts') ? 'text-[#6c63ff]' : 'text-gray-500 hover:text-gray-300'}`}>
+        <Link to="/attendee/alerts" className={`flex flex-col items-center space-y-1 focus:ring-2 focus:ring-purple-500 rounded p-1 ${location.pathname.includes('/alerts') ? 'text-[#6c63ff]' : 'text-gray-500 hover:text-gray-300'}`}>
           <Bell size={24} />
           <span className="text-[10px] font-medium">Alerts</span>
         </Link>
-        <Link to="/attendee/parking" className={`flex flex-col items-center space-y-1 ${location.pathname.includes('/parking') ? 'text-[#6c63ff]' : 'text-gray-500 hover:text-gray-300'}`}>
+        <Link to="/attendee/parking" className={`flex flex-col items-center space-y-1 focus:ring-2 focus:ring-purple-500 rounded p-1 ${location.pathname.includes('/parking') ? 'text-[#6c63ff]' : 'text-gray-500 hover:text-gray-300'}`}>
           <ParkingSquare size={24} />
           <span className="text-[10px] font-medium">Parking</span>
         </Link>
-      </div>
+      </nav>
     </div>
   );
 }

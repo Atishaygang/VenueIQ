@@ -25,7 +25,7 @@ const ParkingMapSVG = React.memo(({ zones }) => {
   };
 
   return (
-    <svg viewBox="0 0 300 250" className="w-full h-auto drop-shadow-2xl">
+    <svg viewBox="0 0 300 250" className="w-full h-auto drop-shadow-2xl" role="img" aria-label="Smart Stadium Parking Occupancy SVG Map">
       {/* Stadium Oval */}
       <ellipse cx="150" cy="125" rx="60" ry="80" fill="#13131a" stroke="#374151" strokeWidth="2" />
       <text x="150" y="130" fill="#6b7280" fontSize="12" fontWeight="bold" textAnchor="middle">STADIUM</text>
@@ -141,12 +141,12 @@ export default function ParkingTab() {
         </div>
 
         <div className="flex items-center justify-between border-t border-gray-800 pt-4 mt-2">
-          <div className="flex items-center text-[#f59e0b]">
+          <div className="flex items-center text-[#f59e0b]" aria-live="polite">
             <CreditCard size={20} className="mr-2" />
             <span className="text-2xl font-bold">₹{liveCost}</span>
             <span className="text-xs text-gray-500 ml-1">est. so far</span>
           </div>
-          <button onClick={handleNavigateCar} className="bg-[#6c63ff] hover:bg-[#5a52d5] text-white px-4 py-2 rounded-lg font-semibold text-sm transition-colors flex items-center">
+          <button onClick={handleNavigateCar} className="bg-[#6c63ff] hover:bg-[#5a52d5] text-white px-4 py-2 rounded-lg font-semibold text-sm transition-colors flex items-center focus:ring-2 focus:ring-purple-500">
             <Navigation size={16} className="mr-1.5" /> Navigate to Car
           </button>
         </div>
@@ -250,6 +250,19 @@ export default function ParkingTab() {
             </div>
           </div>
         ))}
+      </div>
+
+      <div className="mt-8 rounded-xl overflow-hidden border border-gray-800 shadow-sm relative h-48 w-full bg-[#13131a]">
+        <iframe
+          title="Google Map Wankhede Stadium Location"
+          width="100%"
+          height="100%"
+          style={{ border: 0, opacity: 0.8 }}
+          loading="lazy"
+          allowFullScreen
+          referrerPolicy="no-referrer-when-downgrade"
+          src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3773.682662283921!2d72.82361091535798!3d18.93888366099951!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3be7d1e04130f16d%3A0xeab50ef65faccc7d!2sWankhede%20Stadium!5e0!3m2!1sen!2sin!4v1689253406263!5m2!1sen!2sin"
+        />
       </div>
     </div>
   );

@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import { generateSuggestions } from './suggestionEngine';
 import { speak } from './voiceEngine';
+import { db, ref, set } from '../config/firebase';
 
 export const VenueContext = createContext();
 
@@ -176,6 +177,17 @@ export function VenueProvider({ children }) {
 
         next.alerts = [...newAlerts, ...prev.alerts].slice(0, 20);
         next.incidents = [...newIncidents, ...prev.incidents];
+
+        // Sync critical zone alerts to Firebase Realtime DB
+        Object.keys(next.zones).forEach(z => {
+          if (next.zones[z].density >= 85) {
+             set(ref(db, `alerts/zone_${z}`), {
+               density: next.zones[z].density,
+               status: 'Critical Alert Active',
+               timestamp: Date.now()
+             }).catch(err => console.warn('Firebase write skipped:', err.message));
+          }
+        });
 
         const newSugs = generateSuggestions(next.zones, next.stalls, next.gates);
         next.suggestions = newSugs.map(ns => {
