@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect, useCallback, use
 import { generateSuggestions } from './suggestionEngine';
 import { speak } from './voiceEngine';
 import { db, ref, set } from '../config/firebase';
+import { useFirebase } from '../hooks/useFirebase';
 
 export const VenueContext = createContext();
 
@@ -57,6 +58,32 @@ function formatOvers(balls) {
 export function VenueProvider({ children }) {
   const [state, setState] = useState(initialState);
   const [lastTickTrigger, setLastTickTrigger] = useState(Date.now());
+  const { readInitialState, writeZoneDensity, writeMatchState } = useFirebase();
+
+  // Read initial state on load
+  useEffect(() => {
+    readInitialState().then(data => {
+      if (data) {
+        setState(prev => ({
+          ...prev,
+          zones: data.zones || prev.zones,
+          match: data.match || prev.match
+        }));
+      }
+    });
+  }, [readInitialState]);
+
+  // Write zone densities on every tick
+  useEffect(() => {
+    Object.keys(state.zones).forEach(z => {
+      writeZoneDensity(z, state.zones[z].density);
+    });
+  }, [lastTickTrigger, writeZoneDensity]);
+
+  // Write match state on match interval update
+  useEffect(() => {
+    writeMatchState(state.match);
+  }, [state.match, writeMatchState]);
   
   // Voice alert tracking refs
   const lastAlertIdRef = useRef(null);

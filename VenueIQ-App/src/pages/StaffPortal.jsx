@@ -5,6 +5,8 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 
 import { useVenue } from '../engine/VenueContext';
 import { speak } from '../engine/voiceEngine';
 import VoiceControlBar from '../components/shared/VoiceControlBar';
+import { useFirebase } from '../hooks/useFirebase';
+import { GOOGLE_SERVICES } from '../config/googleServices';
 
 const MemoizedDensityChart = React.memo(({ densities }) => (
   <div role="img" aria-label="Live Zone Density Bar Chart" className="w-full h-full">
@@ -38,6 +40,7 @@ const MemoizedQueueChart = React.memo(({ queues }) => (
 
 function Overview() {
   const { zones, stalls, incidents, gates, totalAttendees, lastTickTrigger } = useVenue();
+  const { connected } = useFirebase();
 
   const densitiesArr = Object.keys(zones).map(z => ({ zone: z, density: zones[z].density }));
   const queuesArr = Object.keys(stalls).map(s => ({ name: s, waitTime: stalls[s].waitTime }));
@@ -58,7 +61,22 @@ function Overview() {
   return (
     <div className="space-y-6 animate-fade-in-up pb-[100px]">
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-3xl font-bold text-white">System Overview</h2>
+        <div className="flex items-center gap-4">
+          <h2 className="text-3xl font-bold text-white">System Overview</h2>
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-gray-800 bg-[#13131a] shadow-sm">
+            {connected ? (
+              <>
+                <span className="w-2.5 h-2.5 rounded-full bg-green-500 animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.6)]"></span>
+                <span className="text-xs text-green-500 font-bold tracking-wider uppercase">🔴 Firebase Live</span>
+              </>
+            ) : (
+              <>
+                <span className="w-2.5 h-2.5 rounded-full bg-gray-500"></span>
+                <span className="text-xs text-gray-500 font-bold tracking-wider uppercase">⚪ Offline Mode</span>
+              </>
+            )}
+          </div>
+        </div>
         <p className="text-sm text-gray-400 italic">Last updated: {timeSinceTick} seconds ago</p>
       </div>
       
@@ -94,16 +112,81 @@ function Overview() {
           </div>
         </div>
       </div>
+
+      <div className="mt-8 bg-[#13131a] p-6 rounded-xl border border-gray-800">
+        <h3 className="text-lg font-bold text-white mb-4">⚡ Powered by Google</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {Object.values(GOOGLE_SERVICES).map((service, i) => (
+            <div key={i} className="flex items-start p-4 bg-[#1a1a24] rounded-lg border border-gray-800">
+              <div className="w-2 h-2 mt-1.5 mr-3 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]"></div>
+              <div>
+                <p className="text-sm font-bold text-white">{service.name}</p>
+                <p className="text-xs text-gray-400 mt-1">{service.usage}</p>
+              </div>
+              <div className="ml-auto">
+                 <span className="text-[10px] uppercase font-bold text-green-400 tracking-wider">Active</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }
 
 function AIRedeployment() {
-  const { suggestions, acceptSuggestion } = useVenue();
+  const { zones, suggestions: engineSuggestions, acceptSuggestion } = useVenue();
+  const [loadingObj, setLoading] = React.useState(false);
+  const [geminiSuggestions, setGeminiSuggestions] = React.useState(null);
+
+  const activeSuggestions = geminiSuggestions || engineSuggestions;
 
   const handleAccept = (s) => {
     acceptSuggestion(s.id);
     speak(`Deployment confirmed. ${s.action}. Staff units have been notified.`, { rate: 1.0, pitch: 0.9 });
+  };
+
+  const handleGenerateGemini = async () => {
+    const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
+    if (!apiKey) {
+      console.warn("No VITE_GEMINI_API_KEY found, falling back to local engine.");
+      setGeminiSuggestions(null);
+      return;
+    }
+    
+    setLoading(true);
+    try {
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${apiKey}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{
+            parts: [{ text: `You are a stadium crowd management AI. Current zone densities: ${JSON.stringify(zones)}. Generate 3 specific staff redeployment suggestions. Format as a JSON array where each object has: id (unique numerical timestamp-like id), zone (string, e.g., "Zone B"), action (string description of redeployment), confidence (number from 0-100). Do not use markdown backticks, just raw JSON array.` }]
+          }]
+        })
+      });
+
+      if (!response.ok) throw new Error('Network response was not ok');
+      const data = await response.json();
+      const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text;
+      
+      let parsed = [];
+      if (rawText) {
+        const cleanText = rawText.replace(/```json/g, '').replace(/```/g, '').trim();
+        parsed = JSON.parse(cleanText);
+      }
+      
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        setGeminiSuggestions(parsed.map((p, i) => ({...p, id: p.id || Date.now()+i, isGemini: true})));
+      } else {
+        setGeminiSuggestions(null);
+      }
+    } catch (e) {
+      console.error(e);
+      setGeminiSuggestions(null);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -113,16 +196,28 @@ function AIRedeployment() {
           <Brain className="mr-3 text-[#f59e0b]" size={36} />
           AI Staff Suggestions
         </h2>
-        <span className="bg-gradient-to-r from-pink-500 to-orange-400 text-xs px-3 py-1 rounded-full text-white font-bold tracking-widest shadow-lg absolute right-0 top-2 animate-pulse hidden md:block">
-          🧠 AI Engine — Powered by Live Sensor Data
-        </span>
+        <div className="flex space-x-4 items-center">
+          <button 
+            onClick={handleGenerateGemini}
+            disabled={loadingObj}
+            className="bg-purple-600 hover:bg-purple-700 disabled:opacity-50 text-white px-4 py-2 rounded-lg font-bold transition-colors flex items-center shadow-lg focus:ring-2 focus:ring-purple-500"
+          >
+            {loadingObj ? 'Thinking...' : 'Generate with Gemini ✨'}
+          </button>
+          <span className="bg-gradient-to-r from-pink-500 to-orange-400 text-xs px-3 py-1 rounded-full text-white font-bold tracking-widest shadow-lg hidden md:block">
+            🧠 VenueIQ AI Engine
+          </span>
+        </div>
       </div>
 
       <div className="space-y-4">
-        {suggestions.map(s => (
+        {activeSuggestions.map(s => (
           <div key={s.id} className="bg-[#13131a] p-6 rounded-xl border border-gray-800 flex flex-col md:flex-row md:items-center justify-between shadow-lg">
             <div className="mb-4 md:mb-0">
-              <span className="bg-[#f59e0b]/20 text-[#f59e0b] text-xs font-bold px-2 py-1 rounded uppercase tracking-wider">{s.zone}</span>
+              <div className="flex items-center space-x-2">
+                <span className="bg-[#f59e0b]/20 text-[#f59e0b] text-xs font-bold px-2 py-1 rounded uppercase tracking-wider">{s.zone}</span>
+                {s.isGemini && <span className="bg-purple-500/20 text-purple-400 text-xs font-bold px-2 py-1 rounded uppercase tracking-wider">✨ Gemini</span>}
+              </div>
               <p className="text-lg text-white mt-3 font-medium">{s.action}</p>
               <div className="flex items-center mt-2 text-sm">
                 <span className="text-gray-400 mr-2">Model Confidence:</span>
